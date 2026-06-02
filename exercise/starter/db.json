@@ -1,0 +1,17 @@
+{
+  "tasks": [
+    { "id": 1, "title": "Setup proyecto Angular", "description": "Crear estructura base", "status": "completed", "priority": "high", "createdAt": "2025-01-10T08:00:00Z", "completedAt": "2025-01-10T10:00:00Z" },
+    { "id": 2, "title": "Implementar auth service", "description": "Login, logout, refresh token", "status": "completed", "priority": "high", "createdAt": "2025-01-11T09:00:00Z", "completedAt": "2025-01-11T14:00:00Z" },
+    { "id": 3, "title": "Crear interceptors HTTP", "description": "Auth, error, retry, logging", "status": "pending", "priority": "high", "createdAt": "2025-01-12T08:30:00Z" },
+    { "id": 4, "title": "Agregar paginación", "description": "Implementar cursor-based pagination", "status": "pending", "priority": "medium", "createdAt": "2025-01-13T10:00:00Z" },
+    { "id": 5, "title": "Escribir tests unitarios", "description": "Cobertura mínima 80%", "status": "pending", "priority": "medium", "createdAt": "2025-01-14T11:00:00Z" },
+    { "id": 6, "title": "Documentar API", "description": "OpenAPI spec + README", "status": "pending", "priority": "low", "createdAt": "2025-01-15T09:00:00Z" },
+    { "id": 7, "title": "Code review", "description": "Revisar PRs del equipo", "status": "pending", "priority": "low", "createdAt": "2025-01-16T14:00:00Z" },
+    { "id": 8, "title": "Deploy a staging", "description": "Pipeline CI/CD", "status": "pending", "priority": "high", "createdAt": "2025-01-17T08:00:00Z" }
+  ],
+  "categories": [
+    { "id": 1, "name": "development", "description": "Tareas de desarrollo" },
+    { "id": 2, "name": "testing", "description": "Tareas de testing" },
+    { "id": 3, "name": "devops", "description": "Infraestructura y deploy" }
+  ]
+}

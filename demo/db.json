@@ -1,0 +1,26 @@
+{
+  "products": [
+    { "id": 1, "name": "Mechanical Keyboard", "price": 149.99, "category": "peripherals", "stock": 25 },
+    { "id": 2, "name": "Ultrawide Monitor", "price": 599.99, "category": "monitors", "stock": 8 },
+    { "id": 3, "name": "Wireless Mouse", "price": 79.99, "category": "peripherals", "stock": 50 },
+    { "id": 4, "name": "USB-C Hub", "price": 49.99, "category": "accessories", "stock": 100 },
+    { "id": 5, "name": "Standing Desk", "price": 399.99, "category": "furniture", "stock": 12 },
+    { "id": 6, "name": "Noise Cancelling Headphones", "price": 299.99, "category": "audio", "stock": 30 },
+    { "id": 7, "name": "Webcam 4K", "price": 129.99, "category": "peripherals", "stock": 45 },
+    { "id": 8, "name": "Laptop Stand", "price": 59.99, "category": "accessories", "stock": 80 },
+    { "id": 9, "name": "Ergonomic Chair", "price": 899.99, "category": "furniture", "stock": 5 },
+    { "id": 10, "name": "Desk Lamp LED", "price": 39.99, "category": "accessories", "stock": 200 }
+  ],
+  "categories": [
+    { "id": 1, "name": "peripherals", "description": "Input and output devices" },
+    { "id": 2, "name": "monitors", "description": "Display screens" },
+    { "id": 3, "name": "accessories", "description": "Complementary items" },
+    { "id": 4, "name": "furniture", "description": "Office furniture" },
+    { "id": 5, "name": "audio", "description": "Sound equipment" }
+  ],
+  "orders": [
+    { "id": 1, "productId": 1, "quantity": 2, "status": "completed", "createdAt": "2025-01-15T10:30:00Z" },
+    { "id": 2, "productId": 3, "quantity": 1, "status": "pending", "createdAt": "2025-01-16T14:00:00Z" },
+    { "id": 3, "productId": 5, "quantity": 1, "status": "shipped", "createdAt": "2025-01-17T09:15:00Z" }
+  ]
+}

