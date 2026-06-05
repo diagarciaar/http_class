@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { JsonPipe } from '@angular/common';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
@@ -22,7 +21,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-auth-flow',
   standalone: true,
-  imports: [JsonPipe],
+  imports: [],
   template: `
     <div class="container">
       <h1>🔐 Auth Flow Demo</h1>
